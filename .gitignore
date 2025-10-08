@@ -1,0 +1,13 @@
+.DS_Store
+.Rproj.user/
+*.Rproj
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+*_cache/
+_cache/
+*.utf8.md
+*.knit.md
+dist/
+build/
