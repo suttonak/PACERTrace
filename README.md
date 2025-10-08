@@ -1,4 +1,4 @@
-# PACERTrace v0.2.0 — README
+# PACERTrace v1.0.0 — README
 
 Track animal position and behavior from SLEAP `.h5` files with a point‑and‑click Shiny app for defining ROIs, calibrating pixels to centimeters, and exporting analysis and visualizations.
 
@@ -228,7 +228,7 @@ For each **frame × node**:
 
 ## 📚 Citation
 
-If PACERTrace supports a figure or analysis in your work, please cite this repository and version: **PACERTrace v0.2.0**.
+If PACERTrace supports a figure or analysis in your work, please cite this repository and version: **PACERTrace v1.0.0**.
 
 ---
 
