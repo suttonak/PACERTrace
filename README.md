@@ -1,10 +1,10 @@
-# PACERTrace v1.0.0 — README
+# PACERTrace v1.0.1 — 
 
 Track animal position and behavior from SLEAP `.h5` files with a point‑and‑click Shiny app for defining ROIs, calibrating pixels to centimeters, and exporting analysis and visualizations.
 
 ---
 
-## ✨ What PACERTrace does
+## What PACERTrace does
 
 * Loads SLEAP tracking output (`.h5`) and the corresponding video frame.
 * Lets you **calibrate** (px/cm) using a two‑point line on the frame.
@@ -44,7 +44,7 @@ install.packages(c(
 
 ---
 
-## 📦 Getting started
+## Getting started
 
 1. **Save the app** (this repository’s `app.R` / script content) into a folder, e.g. `PACERTrace/`.
 2. **Open R or RStudio** in that folder.
@@ -179,7 +179,7 @@ For each **frame × node**:
 
 ---
 
-## 🧪 Calibration & units
+## Calibration & units
 
 * Without calibration, distance/speed are in **pixels**.
 * With calibration, ROI placement for shapes (Box/Rect/Circle) uses **cm** dimensions and plots report **cm** and **cm/s**.
@@ -187,7 +187,7 @@ For each **frame × node**:
 
 ---
 
-## 🐞 Troubleshooting
+## Troubleshooting
 
 * **FFmpeg not found / FPS failed**
 
@@ -218,7 +218,7 @@ For each **frame × node**:
 
 ---
 
-## 🧭 Repro tips
+## Repro tips
 
 * Keep ROI names short and consistent (e.g., `ArmA`, `Center`, `RewardZone`).
 * Export **frame‑by‑frame CSV** for downstream stats or quality control.
@@ -226,13 +226,13 @@ For each **frame × node**:
 
 ---
 
-## 📚 Citation
+## Citation
 
 If PACERTrace supports a figure or analysis in your work, please cite this repository and version: **PACERTrace v1.0.0**.
 
 ---
 
-## 📄 License
+## License
 
 MIT License
 
