@@ -1,0 +1,31 @@
+# R files
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# Shiny
+rsconnect/
+.httr-oauth
+
+# Large data files
+*.h5
+*.mp4
+*.avi
+*.mov
+data/
+videos/
+
+# Temporary files
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# Output files
+exports/
+plots/
+
+# IDE
+.vscode/
+.idea/
