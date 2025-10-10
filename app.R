@@ -1,8 +1,8 @@
-# PACERTrace v1.0.0
+# PACERTrace v1.0.1 - fixed PDF export 
 
 library(shiny)
-library(bslib)  # NEW: Modern UI theme
-library(shinyWidgets)  # NEW: Better input controls
+library(bslib)  
+library(shinyWidgets)  
 library(hdf5r)
 library(magick)
 library(dplyr)
@@ -754,7 +754,7 @@ ui <- fluidPage(
   "))
   ),
   
-  titlePanel("PACERTrace: ROI-based Behavior Analysis (v1.0.0)"),
+  titlePanel("PACERTrace: ROI-based Behavior Analysis (v1.0.1)"),
   
   sidebarLayout(
     sidebarPanel(
@@ -3020,6 +3020,7 @@ server <- function(input, output, session) {
   
   
   # NEW: Plot export functionality
+  # Plot export functionality - FIXED for proper PDF/PNG export
   output$export_plot <- downloadHandler(
     filename = function() {
       video_name <- if (!is.null(input$video)) {
@@ -3034,35 +3035,80 @@ server <- function(input, output, session) {
                                "outside_roi_heatmap" = "outside_roi_heatmap",
                                "raster" = paste0("raster_", input$plot_time_bin, "s"),
                                "missing" = "missing_data",
-                               "roi_time" = "roi_time")
+                               "roi_time" = "roi_time",
+                               "cumdist" = "cumulative_distance",
+                               "speed" = "speed",
+                               "dist_bin" = "distance_per_bin",
+                               "traj" = "trajectory",
+                               "plot")
       
       node_name <- gsub("[^A-Za-z0-9_]", "_", input$plot_node)
       
+      # FIXED: Explicitly set .png extension
       paste0(video_name, "_", node_name, "_", plot_type_name, "_", Sys.Date(), ".png")
     },
     content = function(file) {
       if (!is.null(current_plot())) {
-        # Wider for temporal heatmap OR faceted trajectory
-        is_traj_facet <- identical(input$plot_type, "traj") && identical(input$traj_bin_mode, "facet")
-        if (identical(input$plot_type, "temporal_heatmap") || is_traj_facet) {
-          ggsave(file, current_plot(), width = 15, height = 10, dpi = 300, bg = "white")
-        } else {
-          ggsave(file, current_plot(), width = 10, height = 6, dpi = 300, bg = "white")
-        }
-      }
-      else {
+        tryCatch({
+          # Wider for temporal heatmap OR faceted trajectory
+          is_traj_facet <- identical(input$plot_type, "traj") && identical(input$traj_bin_mode, "facet")
+          
+          if (identical(input$plot_type, "temporal_heatmap") || is_traj_facet) {
+            # FIXED: Explicitly specify device and file path
+            ggsave(
+              filename = file,
+              plot = current_plot(),
+              device = "png",  # Force PNG device
+              width = 15,
+              height = 10,
+              dpi = 300,
+              bg = "white"
+            )
+          } else {
+            ggsave(
+              filename = file,
+              plot = current_plot(),
+              device = "png",  # Force PNG device
+              width = 10,
+              height = 6,
+              dpi = 300,
+              bg = "white"
+            )
+          }
+          
+          cat("Plot exported successfully to:", file, "\n")
+          
+        }, error = function(e) {
+          cat("Error exporting plot:", e$message, "\n")
+          # Create error plot
+          err_plot <- ggplot() + 
+            annotate("text", x = 0.5, y = 0.5, 
+                     label = paste("Export failed:", e$message), 
+                     size = 6, color = "red") +
+            theme_void()
+          ggsave(file, err_plot, width = 10, height = 6, dpi = 300, bg = "white", device = "png")
+        })
+      } else {
         # Create a placeholder if no plot available
         p <- ggplot() + 
-          annotate("text", x = 0.5, y = 0.5, label = "No plot available for export", size = 8) +
+          annotate("text", x = 0.5, y = 0.5, 
+                   label = "No plot available for export\nPlease generate a plot first", 
+                   size = 8) +
           theme_void()
-        ggsave(file, p, width = 10, height = 6, dpi = 300, bg = "white")
+        ggsave(file, p, width = 10, height = 6, dpi = 300, bg = "white", device = "png")
       }
     }
   )
   
+  # PDF export handler
   output$export_plot_pdf <- downloadHandler(
     filename = function() {
-      video_name <- if (!is.null(input$video)) tools::file_path_sans_ext(basename(input$video$name)) else "behavior_plot"
+      video_name <- if (!is.null(input$video)) {
+        tools::file_path_sans_ext(basename(input$video$name))
+      } else {
+        "behavior_plot"
+      }
+      
       plot_type_name <- switch(input$plot_type,
                                "heatmap" = "heatmap",
                                "temporal_heatmap" = paste0("temporal_heatmap_", input$plot_time_bin, "s"),
@@ -3070,21 +3116,26 @@ server <- function(input, output, session) {
                                "raster" = paste0("raster_", input$plot_time_bin, "s"),
                                "missing" = "missing_data",
                                "roi_time" = "roi_time",
-                               "dist_bin" = paste0("distbin_", input$bin_size, "s"),
-                               "traj" = if (identical(input$traj_bin_mode, "facet")) "traj_facet" else "traj_single")
+                               "cumdist" = "cumulative_distance",
+                               "speed" = "speed",
+                               "dist_bin" = "distance_per_bin",
+                               "traj" = "trajectory",
+                               "plot")
+      
       node_name <- gsub("[^A-Za-z0-9_]", "_", input$plot_node)
+      
       paste0(video_name, "_", node_name, "_", plot_type_name, "_", Sys.Date(), ".pdf")
     },
     content = function(file) {
-      p <- current_plot()
-      if (is.null(p)) {
-        p <- ggplot() + annotate("text", x=.5, y=.5, label="No plot available for export", size=8) + theme_void()
+      if (!is.null(current_plot())) {
+        is_traj_facet <- identical(input$plot_type, "traj") && identical(input$traj_bin_mode, "facet")
+        
+        if (identical(input$plot_type, "temporal_heatmap") || is_traj_facet) {
+          ggsave(file, current_plot(), device = "pdf", width = 15, height = 10, bg = "white")
+        } else {
+          ggsave(file, current_plot(), device = "pdf", width = 10, height = 6, bg = "white")
+        }
       }
-      # Wider page for faceted heatmaps/trajectories
-      is_traj_facet <- identical(input$plot_type, "traj") && identical(input$traj_bin_mode, "facet")
-      w <- if (identical(input$plot_type, "temporal_heatmap") || is_traj_facet) 15 else 10
-      h <- if (identical(input$plot_type, "temporal_heatmap") || is_traj_facet) 10 else 6
-      ggsave(filename = file, plot = p, width = w, height = h, units = "in", device = cairo_pdf, bg = "white")
     }
   )
   
